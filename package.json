@@ -1,0 +1,68 @@
+{
+  "name": "clankerbend",
+  "version": "0.1.1",
+  "type": "module",
+  "description": "OneWill ClankerBend protocol host and public reference apps.",
+  "license": "MIT",
+  "keywords": [
+    "codex",
+    "clankerbend",
+    "desktop",
+    "extensions"
+  ],
+  "homepage": "https://github.com/OneWillAI/clankerbend#readme",
+  "bugs": {
+    "url": "https://github.com/OneWillAI/clankerbend/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OneWillAI/clankerbend.git"
+  },
+  "bin": {
+    "clankerbend": "./cli.mjs"
+  },
+  "files": [
+    "cli.mjs",
+    "server.mjs",
+    "assets/clankerbend-banner.webp",
+    "assets/clankerbend-demo-thumbnail.webp",
+    "assets/clankerbend.svg",
+    "scripts/release-npm.mjs",
+    "host/src",
+    "launch",
+    "apps/README.md",
+    "apps/vim-nav/clankerbend.manifest.json",
+    "apps/vim-nav/package.json",
+    "apps/vim-nav/public",
+    "apps/vim-nav/src",
+    "apps/vim-nav/README.md",
+    "apps/sticky-notes/clankerbend.manifest.json",
+    "apps/sticky-notes/package.json",
+    "apps/sticky-notes/public",
+    "apps/sticky-notes/src",
+    "apps/sticky-notes/README.md",
+    "docs",
+    "DEVELOPERS.md",
+    "README.md",
+    "LICENSE"
+  ],
+  "workspaces": [
+    "host",
+    "apps/*"
+  ],
+  "scripts": {
+    "start": "node cli.mjs",
+    "start:mock": "node cli.mjs --mock",
+    "test": "node scripts/test.mjs",
+    "test:vim-nav": "npm --prefix apps/vim-nav test",
+    "test:sticky-notes": "npm --prefix apps/sticky-notes test",
+    "test:vim-nav:desktop-real": "npm --prefix apps/vim-nav run test:desktop-real",
+    "test:sticky-notes:desktop-real": "npm --prefix apps/sticky-notes run test:desktop-real",
+    "test:desktop-real:integration": "npm run test:vim-nav:desktop-real && npm run test:sticky-notes:desktop-real",
+    "release:pack": "node scripts/release-npm.mjs pack",
+    "release:publish": "node scripts/release-npm.mjs publish"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

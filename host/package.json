@@ -1,0 +1,13 @@
+{
+  "name": "clankerbend-host",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Reusable ClankerBend host primitives for local Codex Desktop companion apps.",
+  "license": "MIT",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" role="img" aria-labelledby="title desc">
+  <title id="title">ClankerBend</title>
+  <desc id="desc">ClankerBend banner: mod your clanker with OneWill.ai</desc>
+  <rect width="1200" height="520" fill="#fbfbf8"/>
+  <g transform="translate(600 208)">
+    <rect x="-162" y="-118" width="324" height="236" rx="42" fill="#f7fbff" stroke="#17324d" stroke-width="10"/>
+    <rect x="-108" y="-58" width="216" height="104" rx="28" fill="#17324d"/>
+    <circle cx="-48" cy="-7" r="9" fill="#f7fbff"/>
+    <path d="M33 -7h50" stroke="#f7fbff" stroke-width="10" stroke-linecap="round"/>
+    <path d="M-92 68c34 25 150 25 184 0" fill="none" stroke="#2368a2" stroke-width="12" stroke-linecap="round"/>
+    <path d="M-174 -34h-68M174 -34h68" stroke="#17324d" stroke-width="12" stroke-linecap="round"/>
+    <circle cx="-256" cy="-34" r="18" fill="#2b83c6" stroke="#17324d" stroke-width="8"/>
+    <circle cx="256" cy="-34" r="18" fill="#2b83c6" stroke="#17324d" stroke-width="8"/>
+    <path d="M-78 120l-30 64M78 120l30 64" stroke="#17324d" stroke-width="12" stroke-linecap="round"/>
+    <circle cx="-118" cy="204" r="26" fill="#2b83c6" stroke="#17324d" stroke-width="8"/>
+    <circle cx="118" cy="204" r="26" fill="#2b83c6" stroke="#17324d" stroke-width="8"/>
+    <g transform="translate(196 -126) rotate(-28)">
+      <rect x="-22" y="-18" width="222" height="36" rx="18" fill="#17324d"/>
+      <rect x="-144" y="-55" width="150" height="110" rx="24" fill="#df9441" stroke="#17324d" stroke-width="8"/>
+      <path d="M-118 -40v80M-82 -48v96M-46 -44v88" stroke="#f0b56a" stroke-width="7" stroke-linecap="round"/>
+    </g>
+  </g>
+  <text x="600" y="405" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="58" font-weight="800" fill="#080808">mod your clanker</text>
+  <text x="600" y="462" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="46" fill="#080808">with OneWill.ai</text>
+  <text x="600" y="76" text-anchor="middle" font-family="Arial Black, Arial, sans-serif" font-size="62" font-weight="900" fill="#df6f24" stroke="#742f16" stroke-width="4" paint-order="stroke">CLANKERBEND</text>
+</svg>

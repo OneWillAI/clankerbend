@@ -1,0 +1,74 @@
+{
+  "clankerbendVersion": "0.1",
+  "appId": "onewill.sticky-notes",
+  "version": "0.1.0",
+  "name": "OneWill Sticky Notes",
+  "description": "Public reference app for selected transcript notes and composer context chips.",
+  "distribution": {
+    "kind": "local",
+    "source": ".",
+    "integrity": "dev-local",
+    "update": {
+      "channel": "local"
+    }
+  },
+  "entrypoint": {
+    "kind": "module",
+    "module": "./src/sticky-notes-app.js",
+    "factory": "createStickyNotesApp",
+    "publicDir": "./public"
+  },
+  "platform": {
+    "os": [
+      "darwin",
+      "linux",
+      "win32"
+    ],
+    "arch": [
+      "any"
+    ]
+  },
+  "capabilities": {
+    "panel": true,
+    "annotations": true,
+    "actions": true,
+    "appState": true,
+    "selectionActions": true,
+    "overlays": true,
+    "composerContext": true,
+    "composerDraft": true,
+    "rendererBridge": false
+  },
+  "permissions": {
+    "transcriptRead": true,
+    "transcriptAnnotate": true,
+    "transcriptNavigate": true,
+    "overlayWrite": true,
+    "composerWrite": true,
+    "appServerRead": false,
+    "appServerApprove": false,
+    "appServerRollback": false
+  },
+  "panel": {
+    "title": "Sticky Notes",
+    "reloadPolicy": "preserve",
+    "preferredWidth": 380
+  },
+  "lifecycle": {
+    "install": {
+      "kind": "noop"
+    },
+    "start": {
+      "kind": "in-process"
+    },
+    "stop": {
+      "kind": "in-process"
+    },
+    "update": {
+      "kind": "replace-manifest"
+    },
+    "remove": {
+      "kind": "forget"
+    }
+  }
+}

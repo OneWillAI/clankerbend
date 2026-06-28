@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>VimNav</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <strong>VimNav</strong>
+          <p id="subtitle">Transcript keyboard navigation</p>
+        </div>
+        <button id="open-panel" type="button">Panel</button>
+      </header>
+
+      <section class="command">
+        <label for="command-input">Command</label>
+        <div class="command-row">
+          <input id="command-input" autocomplete="off" spellcheck="false" placeholder=":42, /search, gg, G, j, k">
+          <button id="run-command" type="button">Run</button>
+        </div>
+        <p id="command-status"></p>
+      </section>
+
+      <section class="cheatsheet" aria-label="Vim commands">
+        <span><kbd>j</kbd>/<kbd>k</kbd> next/prev</span>
+        <span><kbd>gg</kbd>/<kbd>G</kbd> first/last</span>
+        <span><kbd>{</kbd>/<kbd>}</kbd> turns</span>
+        <span><kbd>/</kbd> search</span>
+      </section>
+
+      <section class="current">
+        <span id="current-index">--</span>
+        <div>
+          <strong id="current-title">No transcript anchor</strong>
+          <p id="current-preview">Waiting for Codex transcript anchors.</p>
+        </div>
+      </section>
+
+      <section class="anchors">
+        <div class="section-head">
+          <h1>Anchors</h1>
+          <span id="anchor-count">0</span>
+        </div>
+        <ol id="anchor-list"></ol>
+      </section>
+    </main>
+    <script src="./app.js"></script>
+  </body>
+</html>

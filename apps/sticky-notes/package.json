@@ -1,0 +1,14 @@
+{
+  "name": "clankerbend-sticky-notes",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "ClankerBend public reference app for transcript range notes and composer context.",
+  "license": "MIT",
+  "scripts": {
+    "test": "node test-clankerbend.mjs",
+    "test:desktop-real": "node test-desktop-real.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

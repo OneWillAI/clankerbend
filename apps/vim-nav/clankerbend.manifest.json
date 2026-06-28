@@ -1,0 +1,69 @@
+{
+  "clankerbendVersion": "0.1",
+  "appId": "onewill.vim-nav",
+  "version": "0.1.0",
+  "name": "VimNav",
+  "description": "Public reference app for keyboard transcript navigation in Codex Desktop.",
+  "distribution": {
+    "kind": "local",
+    "source": ".",
+    "integrity": "dev-local",
+    "update": {
+      "channel": "local"
+    }
+  },
+  "entrypoint": {
+    "kind": "module",
+    "module": "./src/vim-nav-app.js",
+    "factory": "createVimNavApp",
+    "publicDir": "./public"
+  },
+  "platform": {
+    "os": [
+      "darwin",
+      "linux",
+      "win32"
+    ],
+    "arch": [
+      "any"
+    ]
+  },
+  "capabilities": {
+    "panel": true,
+    "annotations": true,
+    "commands": true,
+    "actions": true,
+    "appState": true,
+    "rendererBridge": false
+  },
+  "permissions": {
+    "transcriptRead": true,
+    "transcriptAnnotate": true,
+    "transcriptNavigate": true,
+    "appServerRead": false,
+    "appServerApprove": false,
+    "appServerRollback": false
+  },
+  "panel": {
+    "title": "VimNav",
+    "reloadPolicy": "preserve",
+    "preferredWidth": 360
+  },
+  "lifecycle": {
+    "install": {
+      "kind": "noop"
+    },
+    "start": {
+      "kind": "in-process"
+    },
+    "stop": {
+      "kind": "in-process"
+    },
+    "update": {
+      "kind": "replace-manifest"
+    },
+    "remove": {
+      "kind": "forget"
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "clankerbend-vim-nav",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Public ClankerBend reference app for Vim-like Codex Desktop transcript navigation.",
+  "license": "MIT",
+  "scripts": {
+    "start": "node server.mjs",
+    "start:mock": "node server.mjs --mock",
+    "test": "node test-clankerbend.mjs",
+    "test:desktop-real": "node test-desktop-real.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
