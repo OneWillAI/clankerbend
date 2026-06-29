@@ -30,6 +30,7 @@ npx clankerbend
 
 That starts Codex Desktop with the default ClankerBend profile and bundled apps:
 
+- **ClankerID**: switch between Codex accounts.
 - **VimNav**: Vim-style transcript navigation, number rails, role jumps, search,
   and a side panel.
 - **Sticky Notes**: select transcript text, click **Add note**, and the
@@ -45,9 +46,21 @@ ClankerBend writes runtime state outside the package:
 
 Override with `ONEWILL_CLANKERBEND_STATE_DIR`.
 
+Managed Codex account profiles live under the same state directory. The primary
+profile remains your normal `CODEX_HOME` or `~/.codex`; managed profiles get
+their own `codex-home` and Electron user-data directories. You can start a
+saved profile directly with:
+
+```sh
+npx clankerbend --account work
+```
+
 ## Security
 
 ClankerBend binds to `127.0.0.1` on an OS-assigned ephemeral port. The launcher
-prints the exact host URL, for example `Host: http://127.0.0.1:49152`.
+prints the exact host URL and bearer token, for example
+`Host: http://127.0.0.1:49152` and `Token: ...`.
 `/clankerbend/*` endpoints require a bearer token by default. For local protocol
-debugging, you can set `ONEWILL_CLANKERBEND_DISABLE_AUTH=1`.
+debugging, you can set `ONEWILL_CLANKERBEND_DISABLE_AUTH=1`. Hosted app pages
+receive the same bearer token from their app URL fragment and from a
+host-injected HTML bootstrap so URL rewriting does not break app auth.

@@ -476,8 +476,9 @@ async function waitForLauncher(child) {
   });
   while (Date.now() < deadline) {
     const hostUrl = output.match(/^Host: (http:\/\/127\.0\.0\.1:\d+)/m)?.[1];
-    const panelUrl = output.match(/^Panel: (http:\/\/127\.0\.0\.1:\d+\/\S+)/m)?.[1];
-    const token = panelUrl ? new URL(panelUrl).hash.match(/clankerbend_token=([^&]+)/)?.[1] || "" : "";
+    const panelUrl = output.match(/^(?:App|Panel): (http:\/\/127\.0\.0\.1:\d+\/\S+)/m)?.[1];
+    const token = output.match(/^Token: (.+)$/m)?.[1] ||
+      (panelUrl ? new URL(panelUrl).hash.match(/clankerbend_token=([^&]+)/)?.[1] || "" : "");
     if (hostUrl && token) {
       const state = await fetchHostState(hostUrl, decodeURIComponent(token)).catch(() => null);
       const cdpPort = state?.desktop?.cdpPort;

@@ -12,6 +12,9 @@ try {
   const state = await getJson(server, "/clankerbend/state");
   assert.equal(state.data.apps.some((app) => app.appId === APP_ID), true);
   assert.equal(state.data.transcript.anchors.length > 0, true);
+  assert.equal(state.data.codexAccounts.available, true);
+  assert.equal(state.data.codexAccounts.accounts.some((account) => account.id === "primary"), true);
+  await assertAppTokenBootstrap(server);
 
   await assertAction(server, "latest-user", "vim.latestRole", { role: "user" }, "mock-3:user");
   await assertSelection(server, "mock-3:user");
@@ -47,6 +50,16 @@ async function assertAction(server, actionId, type, payload, expectedAnchorId) {
 async function assertSelection(server, expectedAnchorId) {
   const state = await getJson(server, "/clankerbend/state");
   assert.equal(state.data.selection.anchorId, expectedAnchorId);
+}
+
+async function assertAppTokenBootstrap(server) {
+  const appRes = await fetch(`${server.baseUrl}/apps/${encodeURIComponent(APP_ID)}/`);
+  assert.equal(appRes.ok, true);
+  assert.equal(appRes.headers.get("set-cookie"), null);
+  const html = await appRes.text();
+  assert.match(html, /window\.__CLANKERBEND_TOKEN=/);
+  assert.match(html, /<meta name="clankerbend-token" content="/);
+  assert.equal(html.includes(JSON.stringify(server.token)), true);
 }
 
 async function startServer() {
@@ -90,7 +103,9 @@ async function waitForLaunch(proc, stderr) {
     for await (const line of rl) {
       const hostMatch = line.match(/^Host: (http:\/\/127\.0\.0\.1:\d+)/);
       if (hostMatch) baseUrl = hostMatch[1];
-      const panelMatch = line.match(/^Panel: (http:\/\/127\.0\.0\.1:\d+\/\S+)/);
+      const tokenMatch = line.match(/^Token: (.+)$/);
+      if (tokenMatch) token = tokenMatch[1];
+      const panelMatch = line.match(/^(?:App|Panel): (http:\/\/127\.0\.0\.1:\d+\/\S+)/);
       if (panelMatch) token = new URL(panelMatch[1]).hash.match(/clankerbend_token=([^&]+)/)?.[1] || "";
       if (baseUrl && token) {
         rl.close();

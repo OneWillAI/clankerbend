@@ -54,6 +54,8 @@ function parseCodexArgs(args) {
       options.mock = true;
     } else if (arg === "--state-dir") {
       options.stateDir = requiredArg(args[++index], "--state-dir value");
+    } else if (arg === "--account") {
+      options.accountId = requiredArg(args[++index], "--account id");
     } else if (arg === "--help" || arg === "-h") {
       printCodexHelp();
       process.exit(0);
@@ -68,8 +70,8 @@ function printHelp() {
   console.log(`ClankerBend
 
 Usage:
-  clankerbend [--mock] [--state-dir path]
-  clankerbend codex [--mock] [--state-dir path]
+  clankerbend [--mock] [--state-dir path] [--account id]
+  clankerbend codex [--mock] [--state-dir path] [--account id]
   clankerbend help
   clankerbend --version
 
@@ -84,12 +86,13 @@ function printCodexHelp() {
   console.log(`ClankerBend Codex launcher
 
 Usage:
-  clankerbend [--mock] [--state-dir path]
-  clankerbend codex [--mock] [--state-dir path]
+  clankerbend [--mock] [--state-dir path] [--account id]
+  clankerbend codex [--mock] [--state-dir path] [--account id]
 
 Options:
   --mock            Start against a mock transcript instead of Codex Desktop.
   --state-dir path  Override ClankerBend runtime state directory.
+  --account id      Start with a saved ClankerBend Codex account profile.
 `);
 }
 

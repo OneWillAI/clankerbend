@@ -1,6 +1,6 @@
 {
   "name": "clankerbend",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "type": "module",
   "description": "OneWill ClankerBend protocol host and public reference apps.",
   "license": "MIT",

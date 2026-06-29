@@ -8,6 +8,7 @@ import {
   providersFromRendererBridges,
   readAppManifest
 } from "../host/src/app-registry.js";
+import { CodexAccountRegistry, primaryCodexHome } from "./accounts.mjs";
 import { clankerbendRuntimePaths } from "./runtime-paths.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -23,6 +24,18 @@ export const STICKY_NOTES_APP_ID = readAppManifest(STICKY_NOTES_MANIFEST_PATH).a
 export async function navigateProfile(options = {}) {
   const runtimePaths = clankerbendRuntimePaths({ stateDir: options.stateDir });
   const runDir = options.runDir || runtimePaths.runDir;
+  const registryProfileId = options.registryProfileId || process.env.ONEWILL_CLANKERBEND_PROFILE || "default";
+  const primaryElectronProfile = options.runDir ? join(runDir, "codex-profile") : runtimePaths.codexProfileDir;
+  const accountStateRoot = options.runDir && !options.stateDir ? runDir : runtimePaths.root;
+  const accountRegistry = new CodexAccountRegistry({
+    root: accountStateRoot,
+    registryPath: join(accountStateRoot, "accounts.json"),
+    accountsDir: join(accountStateRoot, "accounts"),
+    deletedDir: join(accountStateRoot, "deleted-accounts"),
+    primaryCodexHome: options.primaryCodexHome || primaryCodexHome(),
+    primaryElectronProfile
+  });
+  const codexAccount = options.accountId ? accountRegistry.get(options.accountId) : accountRegistry.getDefault();
   const profile = await loadProfileFromManifests({
     profileId: PROFILE_NAVIGATE,
     name: "Navigate",
@@ -31,12 +44,18 @@ export async function navigateProfile(options = {}) {
     hostName: "ClankerBend Navigate",
     runDir,
     runtimePaths,
+    accountRegistry,
     defaultPanelAppId: VIM_NAV_APP_ID,
     manifestPaths: configuredManifestPaths([VIM_NAV_MANIFEST_PATH, STICKY_NOTES_MANIFEST_PATH], {
       registryConfigPath: options.registryConfigPath || runtimePaths.registryConfigPath,
-      registryProfileId: options.registryProfileId
+      registryProfileId
     })
   });
+  profile.launchProfileId = registryProfileId;
+  profile.launchProfileName = profileNameFromId(registryProfileId);
+  profile.accountRegistry = accountRegistry;
+  profile.codexAccount = codexAccount;
+  profile.startAccountId = codexAccount.id;
   const bridge = codexDesktopRendererBridge();
   profile.rendererBridges = [bridge, ...profile.rendererBridges];
   profile.providers = providersFromRendererBridges(profile.rendererBridges);
@@ -81,13 +100,18 @@ function codexDesktopRendererBridge() {
 export function printLaunchStatus(profile, host, options = {}) {
   const mode = options.mockMode ? "Mock transcript" : "Codex Desktop";
   console.log("");
-  console.log(`ClankerBend: ${profile.name}`);
+  console.log(`ClankerBend profile: ${profile.launchProfileName || profile.name || "Default"}`);
   console.log(`Status: ${mode} is running`);
-  console.log(`Panel: ${host.state.panel.url}`);
   console.log(`Host: ${host.state.host.url}`);
-  if (!options.mockMode) {
-    console.log("Codex Desktop is open. Use the Browser side panel for ClankerBend apps.");
-  }
+  if (host.token) console.log(`Token: ${host.token}`);
   console.log("Press Ctrl+C to stop ClankerBend and the launched Codex Desktop process.");
   console.log("");
+}
+
+function profileNameFromId(profileId) {
+  return String(profileId || "default")
+    .split(/[-_\s]+/)
+    .filter(Boolean)
+    .map((part) => `${part.slice(0, 1).toUpperCase()}${part.slice(1)}`)
+    .join(" ") || "Default";
 }

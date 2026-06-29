@@ -144,6 +144,8 @@ export async function loadProfileFromManifests(options) {
     hostId: options.hostId,
     hostName: options.hostName,
     runDir: options.runDir,
+    runtimePaths: options.runtimePaths,
+    accountRegistry: options.accountRegistry,
     defaultPanelAppId,
     apps,
     manifests: loadedApps.map((loaded) => loaded.manifest),

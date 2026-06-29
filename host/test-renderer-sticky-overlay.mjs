@@ -94,6 +94,177 @@ nativeNoteButton.click();
 const nativeEvents = bridge.drainHostEvents();
 assert.equal(nativeEvents.some((event) => event.kind === "appAction" && event.type === "sticky.note.open"), true);
 
+const accountMenu = dom.document.createElement("div");
+const logoutButton = dom.document.createElement("button");
+logoutButton.textContent = "Log out";
+accountMenu.appendChild(logoutButton);
+dom.document.body.appendChild(accountMenu);
+
+bridge.applyHostState({
+  selectionActions: [],
+  overlay: null,
+  composer: { contextItems: [] },
+  codexAccounts: {
+    available: true,
+    activeAccountId: "primary",
+    clankerbendDefaultAccountId: "primary",
+    maxAccounts: 20,
+    switching: false,
+    accounts: [{
+      id: "primary",
+      kind: "primary",
+      label: "Primary",
+      codexHome: "/Users/test/.codex",
+      auth: { authJson: true }
+    }]
+  }
+});
+const accountSwitcher = dom.document.getElementById("clankerbend-account-switcher");
+assert.ok(accountSwitcher);
+assert.equal(accountSwitcher.querySelector(".clankerbend-account-title").textContent, "ClankerID");
+assert.match(accountSwitcher.querySelector(".clankerbend-account-main").title, /CODEX_HOME: \/Users\/test\/\.codex/);
+const addAccountButton = Array.from(accountSwitcher.querySelectorAll("button")).find((button) => button.textContent === "Add account");
+assert.ok(addAccountButton);
+addAccountButton.click();
+const accountInput = accountSwitcher.querySelector("[data-clankerbend-account-label]");
+assert.ok(accountInput);
+accountInput.value = "Work";
+accountInput.dispatchEvent(new dom.Event("input"));
+bridge.applyHostState({
+  selectionActions: [],
+  overlay: null,
+  composer: { contextItems: [] },
+  codexAccounts: {
+    available: true,
+    activeAccountId: "primary",
+    clankerbendDefaultAccountId: "primary",
+    maxAccounts: 20,
+    switching: false,
+    accounts: [{
+      id: "primary",
+      kind: "primary",
+      label: "Primary",
+      codexHome: "/Users/test/.codex",
+      auth: { authJson: true }
+    }]
+  }
+});
+assert.equal(accountSwitcher.querySelector("[data-clankerbend-account-label]"), accountInput);
+assert.equal(accountInput.value, "Work");
+const createAccountButton = Array.from(accountSwitcher.querySelectorAll("button")).find((button) => button.textContent === "Create");
+assert.ok(createAccountButton);
+createAccountButton.click();
+const accountEvents = bridge.drainHostEvents();
+assert.equal(accountEvents.some((event) => event.kind === "codexAccountCreateAndSwitch" && event.label === "Work"), true);
+
+bridge.applyHostState({
+  selectionActions: [],
+  overlay: null,
+  composer: { contextItems: [] },
+  codexAccounts: {
+    available: true,
+    activeAccountId: "primary",
+    clankerbendDefaultAccountId: "primary",
+    maxAccounts: 20,
+    switching: false,
+    accounts: [{
+      id: "primary",
+      kind: "primary",
+      label: "Primary",
+      codexHome: "/Users/test/.codex",
+      auth: { authJson: true }
+    }, {
+      id: "work",
+      kind: "managed",
+      label: "Work",
+      codexHome: "/tmp/clankerbend/accounts/work/codex-home",
+      auth: { authJson: true }
+    }]
+  }
+});
+const launchDefaultButton = Array.from(accountSwitcher.querySelectorAll("button")).find((button) => button.title.startsWith("Launch by default"));
+assert.ok(launchDefaultButton);
+assert.match(Array.from(accountSwitcher.querySelectorAll(".clankerbend-account-main")).find((button) => button.innerText.includes("Work")).title, /CODEX_HOME: \/tmp\/clankerbend\/accounts\/work\/codex-home/);
+const manageAccountButton = Array.from(accountSwitcher.querySelectorAll("button")).find((button) => button.textContent === "Manage");
+assert.ok(manageAccountButton);
+manageAccountButton.click();
+assert.ok(accountSwitcher.querySelector(".clankerbend-account-manage"));
+assert.equal(accountSwitcher.querySelector(".clankerbend-account-manage-head strong").textContent, "Manage profiles");
+assert.match(accountSwitcher.querySelector(".clankerbend-account-manage-row").title, /CODEX_HOME: \/tmp\/clankerbend\/accounts\/work\/codex-home/);
+const adoptButton = Array.from(accountSwitcher.querySelectorAll("button")).find((button) => button.textContent === "Make primary");
+assert.ok(adoptButton);
+adoptButton.click();
+const confirmAdoptButton = Array.from(accountSwitcher.querySelectorAll("button")).find((button) => button.textContent === "Replace ~/.codex");
+assert.ok(confirmAdoptButton);
+confirmAdoptButton.click();
+const adoptEvents = bridge.drainHostEvents();
+assert.equal(adoptEvents.some((event) => event.kind === "codexAccountAdoptAsPrimary" && event.accountId === "work"), true);
+
+bridge.applyHostState({
+  selectionActions: [],
+  overlay: null,
+  composer: { contextItems: [] },
+  codexAccounts: {
+    available: true,
+    activeAccountId: "primary",
+    clankerbendDefaultAccountId: "primary",
+    maxAccounts: 20,
+    switching: false,
+    accounts: [{
+      id: "primary",
+      kind: "primary",
+      label: "Primary",
+      codexHome: "/Users/test/.codex",
+      auth: { authJson: true }
+    }, {
+      id: "work",
+      kind: "managed",
+      label: "Work",
+      codexHome: "/tmp/clankerbend/accounts/work/codex-home",
+      auth: { authJson: true }
+    }]
+  }
+});
+const removeButton = Array.from(accountSwitcher.querySelectorAll("button")).find((button) => button.textContent === "Archive");
+assert.ok(removeButton);
+removeButton.click();
+const confirmRemoveButton = Array.from(accountSwitcher.querySelectorAll("button")).find((button) => button.textContent === "Archive profile");
+assert.ok(confirmRemoveButton);
+confirmRemoveButton.click();
+const removeEvents = bridge.drainHostEvents();
+assert.equal(removeEvents.some((event) => event.kind === "codexAccountDelete" && event.accountId === "work"), true);
+
+accountMenu.remove();
+const nestedAccountMenu = dom.document.createElement("div");
+const nestedLogoutWrap = dom.document.createElement("div");
+nestedLogoutWrap._rect = { left: 120, top: 120, right: 220, bottom: 180, width: 100, height: 60 };
+const nestedLogoutButton = dom.document.createElement("button");
+nestedLogoutButton.textContent = "Log out";
+nestedLogoutWrap.appendChild(nestedLogoutButton);
+nestedAccountMenu.appendChild(nestedLogoutWrap);
+dom.document.body.appendChild(nestedAccountMenu);
+bridge.applyHostState({
+  selectionActions: [],
+  overlay: null,
+  composer: { contextItems: [] },
+  codexAccounts: {
+    available: true,
+    activeAccountId: "primary",
+    clankerbendDefaultAccountId: "primary",
+    maxAccounts: 20,
+    switching: false,
+    accounts: [{
+      id: "primary",
+      kind: "primary",
+      label: "Primary",
+      codexHome: "/Users/test/.codex",
+      auth: { authJson: true }
+    }]
+  }
+});
+assert.equal(nestedAccountMenu.firstElementChild?.id, "clankerbend-account-switcher");
+assert.equal(nestedAccountMenu.children[1], nestedLogoutWrap);
+
 bridge.setTranscriptOrder(["stale-thread:0:user"], { source: "app-server" });
 const staleOrderSnapshot = bridge.snapshot();
 assert.equal(staleOrderSnapshot.anchors.length, 1);
@@ -325,6 +496,23 @@ function createDomHarness() {
         .join(" ");
     }
 
+    get isConnected() {
+      for (let node = this; node; node = node.parentElement) {
+        if (node === this.ownerDocument.documentElement) return true;
+      }
+      return false;
+    }
+
+    get firstElementChild() {
+      return this.children[0] || null;
+    }
+
+    get nextElementSibling() {
+      if (!this.parentElement) return null;
+      const index = this.parentElement.children.indexOf(this);
+      return index >= 0 ? this.parentElement.children[index + 1] || null : null;
+    }
+
     set innerText(value) {
       this.textContent = String(value || "");
     }
@@ -337,6 +525,14 @@ function createDomHarness() {
       if (child.parentElement) child.parentElement.removeChild(child);
       child.parentElement = this;
       this.children.push(child);
+      return child;
+    }
+
+    insertBefore(child, reference) {
+      if (!reference || !this.children.includes(reference)) return this.appendChild(child);
+      if (child.parentElement) child.parentElement.removeChild(child);
+      child.parentElement = this;
+      this.children.splice(this.children.indexOf(reference), 0, child);
       return child;
     }
 

@@ -15,6 +15,9 @@ export function clankerbendRuntimePaths(options = {}) {
     root,
     runDir: join(root, "run"),
     registryConfigPath: join(root, "registry.json"),
+    accountRegistryPath: join(root, "accounts.json"),
+    accountProfilesDir: join(root, "accounts"),
+    deletedAccountProfilesDir: join(root, "deleted-accounts"),
     appInstallDir: join(root, "apps"),
     codexProfileDir: join(root, "codex-profile")
   };

@@ -100,6 +100,7 @@ export class ClankerBendHost {
     this.token = this.localDevInsecure ? "" : (isNonEmptyString(options.token) ? options.token : createSessionToken());
     this.runDir = options.runDir || null;
     this.transcriptAdapter = options.transcriptAdapter || createMockTranscriptAdapter();
+    this.accountRegistry = options.accountRegistry || null;
     this.apps = new Map();
     this.sseClients = new Set();
     this.actionResults = new Map();
@@ -157,6 +158,15 @@ export class ClankerBendHost {
         version: null,
         error: "not started"
       },
+      codexAccounts: this.accountRegistry
+        ? {
+            available: true,
+            activeAccountId: null,
+            maxRunningDesktopInstances: 1,
+            switching: false,
+            ...this.accountRegistry.list()
+          }
+        : null,
       lastAction: null
     };
   }
@@ -266,6 +276,11 @@ export class ClankerBendHost {
         correlateItems: false,
         approvals: false,
         rollback: false
+      },
+      codexAccounts: {
+        available: Boolean(this.accountRegistry),
+        switch: Boolean(this.transcriptAdapter.switchTo),
+        adoptPrimary: Boolean(this.transcriptAdapter.adoptAsPrimary)
       }
     };
   }
@@ -323,6 +338,7 @@ export class ClankerBendHost {
   }
 
   publicState() {
+    if (this.accountRegistry) this.state.codexAccounts = this.accountState();
     return {
       protocolName: "clankerbend",
       protocolVersion: this.protocolVersion,
@@ -361,6 +377,7 @@ export class ClankerBendHost {
         ...this.appState(app.appId)
       })),
       appServer: this.state.appServer,
+      codexAccounts: this.state.codexAccounts || undefined,
       lastAction: this.state.lastAction || undefined
     };
   }
@@ -501,6 +518,19 @@ export class ClankerBendHost {
     if (url.pathname === "/clankerbend/composer/context/remove" && req.method === "POST") return this.composerContextRemoveEndpoint(req, res);
     if (url.pathname === "/clankerbend/composer/draft" && req.method === "POST") return this.composerDraftEndpoint(req, res);
     if (url.pathname === "/clankerbend/composer/submit" && req.method === "POST") return this.composerSubmitEndpoint(req, res);
+    if (url.pathname === "/clankerbend/codex/accounts" && req.method === "GET") return this.codexAccountsListEndpoint(res);
+    if (url.pathname === "/clankerbend/codex/accounts" && req.method === "POST") return this.codexAccountsCreateEndpoint(req, res);
+    if (url.pathname === "/clankerbend/codex/accounts/default" && req.method === "POST") return this.codexAccountsDefaultEndpoint(req, res);
+    if (url.pathname === "/clankerbend/codex/accounts/switch" && req.method === "POST") return this.codexAccountsSwitchEndpoint(req, res);
+    if (url.pathname === "/clankerbend/codex/primary/rollback" && req.method === "POST") return this.codexPrimaryRollbackEndpoint(req, res);
+    const accountRoute = this.parseCodexAccountRoute(url.pathname);
+    if (accountRoute && req.method === "POST" && accountRoute.tail === "/switch") return this.codexAccountSwitchEndpoint(accountRoute.accountId, res);
+    if (accountRoute && req.method === "POST" && accountRoute.tail === "/start") return this.codexAccountSwitchEndpoint(accountRoute.accountId, res);
+    if (accountRoute && req.method === "POST" && accountRoute.tail === "/focus") return this.codexAccountSwitchEndpoint(accountRoute.accountId, res);
+    if (accountRoute && req.method === "POST" && accountRoute.tail === "/set-default") return this.codexAccountSetDefaultEndpoint(accountRoute.accountId, res);
+    if (accountRoute && req.method === "POST" && accountRoute.tail === "/adopt-as-primary") return this.codexAccountAdoptEndpoint(accountRoute.accountId, res);
+    if (accountRoute && req.method === "DELETE") return this.codexAccountDeleteEndpoint(accountRoute.accountId, res);
+    if (accountRoute && req.method === "POST" && accountRoute.tail === "/delete") return this.codexAccountDeleteEndpoint(accountRoute.accountId, res);
 
     const appRoute = this.parseAppRoute(url.pathname);
     if (appRoute && req.method === "GET" && appRoute.tail === "/manifest") return this.ok(res, this.appManifest(appRoute.appId));
@@ -530,6 +560,107 @@ export class ClankerBendHost {
     if (!appId) return null;
     this.requireApp(appId);
     return { appId, tail: `/${parts.slice(4).join("/")}` };
+  }
+
+  parseCodexAccountRoute(pathname) {
+    if (!pathname.startsWith("/clankerbend/codex/accounts/")) return null;
+    const parts = pathname.split("/");
+    const accountId = decodeURIComponent(parts[4] || "");
+    if (!accountId) return null;
+    return { accountId, tail: `/${parts.slice(5).join("/")}` };
+  }
+
+  requireAccountRegistry() {
+    if (!this.accountRegistry) throw httpError(404, "not_found", "Codex account registry is unavailable");
+    return this.accountRegistry;
+  }
+
+  accountState() {
+    if (typeof this.transcriptAdapter.accountState === "function") return this.transcriptAdapter.accountState();
+    return this.accountRegistry ? {
+      available: true,
+      activeAccountId: null,
+      maxRunningDesktopInstances: 1,
+      switching: false,
+      ...this.accountRegistry.list()
+    } : null;
+  }
+
+  codexAccountsListEndpoint(res) {
+    this.requireAccountRegistry();
+    this.state.codexAccounts = this.accountState();
+    return this.ok(res, this.state.codexAccounts);
+  }
+
+  async codexAccountsCreateEndpoint(req, res) {
+    this.requireAccountRegistry();
+    const body = await readJsonObject(req, "account create request body");
+    const result = typeof this.transcriptAdapter.createAccount === "function"
+      ? await this.transcriptAdapter.createAccount(body)
+      : this.accountRegistry.createManaged(body);
+    this.state.codexAccounts = this.accountState();
+    return this.ok(res, result, 201);
+  }
+
+  async codexAccountsDefaultEndpoint(req, res) {
+    const body = await readJsonObject(req, "account default request body");
+    if (!isNonEmptyString(body.accountId)) throw httpError(400, "bad_request", "accountId is required");
+    return this.codexAccountSetDefaultEndpoint(body.accountId, res);
+  }
+
+  async codexAccountsSwitchEndpoint(req, res) {
+    const body = await readJsonObject(req, "account switch request body");
+    if (!isNonEmptyString(body.accountId)) throw httpError(400, "bad_request", "accountId is required");
+    return this.codexAccountSwitchEndpoint(body.accountId, res);
+  }
+
+  async codexAccountSwitchEndpoint(accountId, res) {
+    this.requireAccountRegistry();
+    if (typeof this.transcriptAdapter.switchTo !== "function") {
+      throw httpError(409, "unsupported", "active adapter does not support Codex account switching");
+    }
+    const result = await this.transcriptAdapter.switchTo(accountId);
+    this.state.codexAccounts = this.accountState();
+    return this.ok(res, result);
+  }
+
+  async codexAccountSetDefaultEndpoint(accountId, res) {
+    this.requireAccountRegistry();
+    const result = typeof this.transcriptAdapter.setDefault === "function"
+      ? await this.transcriptAdapter.setDefault(accountId)
+      : this.accountRegistry.setDefault(accountId);
+    this.state.codexAccounts = this.accountState();
+    return this.ok(res, result);
+  }
+
+  async codexAccountAdoptEndpoint(accountId, res) {
+    this.requireAccountRegistry();
+    if (typeof this.transcriptAdapter.adoptAsPrimary !== "function") {
+      throw httpError(409, "unsupported", "active adapter does not support primary adoption");
+    }
+    const result = await this.transcriptAdapter.adoptAsPrimary(accountId);
+    this.state.codexAccounts = this.accountState();
+    return this.ok(res, result);
+  }
+
+  async codexPrimaryRollbackEndpoint(req, res) {
+    this.requireAccountRegistry();
+    const body = await readJsonObject(req, "primary rollback request body");
+    if (typeof this.transcriptAdapter.rollbackPrimary !== "function") {
+      throw httpError(409, "unsupported", "active adapter does not support primary rollback");
+    }
+    const result = await this.transcriptAdapter.rollbackPrimary(body);
+    this.state.codexAccounts = this.accountState();
+    return this.ok(res, result);
+  }
+
+  async codexAccountDeleteEndpoint(accountId, res) {
+    this.requireAccountRegistry();
+    const result = typeof this.transcriptAdapter.deleteAccount === "function"
+      ? await this.transcriptAdapter.deleteAccount(accountId)
+      : this.accountRegistry.deleteManaged(accountId);
+    this.state.codexAccounts = this.accountState();
+    return this.ok(res, result);
   }
 
   async actionEndpoint(appId, req, res) {
@@ -973,10 +1104,17 @@ export class ClankerBendHost {
       res.writeHead(404).end("not found");
       return;
     }
-    res.writeHead(200, {
-      "content-type": mimeType(filePath),
+    const contentType = mimeType(filePath);
+    const headers = {
+      "content-type": contentType,
       "cache-control": "no-store"
-    });
+    };
+    if (this.token && contentType.startsWith("text/html")) {
+      res.writeHead(200, headers);
+      res.end(injectAppToken(readFileSync(filePath, "utf8"), this.token));
+      return;
+    }
+    res.writeHead(200, headers);
     createReadStream(filePath).pipe(res);
   }
 
@@ -1023,7 +1161,7 @@ export class ClankerBendHost {
 
   applyCors(res) {
     res.setHeader("access-control-allow-origin", "*");
-    res.setHeader("access-control-allow-methods", "GET,POST,OPTIONS");
+    res.setHeader("access-control-allow-methods", "GET,POST,DELETE,OPTIONS");
     res.setHeader("access-control-allow-headers", "authorization,content-type");
   }
 }
@@ -1132,6 +1270,20 @@ function shouldTrackHostComposerAttachment(adapterResult) {
 
 export function createSessionToken() {
   return randomBytes(32).toString("base64url");
+}
+
+function injectAppToken(html, token) {
+  const script = `<meta name="clankerbend-token" content="${escapeHtmlAttribute(token)}">\n    <script>window.__CLANKERBEND_TOKEN=${JSON.stringify(token)};</script>`;
+  return /<head[^>]*>/i.test(html)
+    ? html.replace(/<head[^>]*>/i, (match) => `${match}\n    ${script}`)
+    : `${script}\n${html}`;
+}
+
+function escapeHtmlAttribute(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;");
 }
 
 function requirePermission(app, permission) {

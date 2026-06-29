@@ -1,6 +1,6 @@
 import { pathToFileURL } from "node:url";
-import { createCodexDesktopCdpAdapter } from "./host/src/codex-desktop-cdp-adapter.js";
 import { ClankerBendHost, createMockTranscriptAdapter } from "./host/src/index.js";
+import { createCodexDesktopMuxAdapter } from "./launch/codex-mux-adapter.mjs";
 import { navigateProfile, printLaunchStatus } from "./launch/profiles.mjs";
 
 export async function launchClankerBendCodex(options = {}) {
@@ -10,7 +10,9 @@ export async function launchClankerBendCodex(options = {}) {
     stateDir: options.stateDir,
     runDir: options.runDir,
     registryConfigPath: options.registryConfigPath,
-    registryProfileId: options.registryProfileId
+    registryProfileId: options.registryProfileId,
+    accountId: options.accountId,
+    primaryCodexHome: options.primaryCodexHome
   });
 
   const host = new ClankerBendHost({
@@ -19,13 +21,18 @@ export async function launchClankerBendCodex(options = {}) {
     token: options.token || process.env.ONEWILL_CLANKERBEND_TOKEN || undefined,
     localDevInsecure,
     runDir: profile.runDir,
+    accountRegistry: profile.accountRegistry,
     transcriptAdapter: mockMode
       ? createMockTranscriptAdapter({ defaultAppId: profile.defaultPanelAppId, providers: profile.providers })
-      : createCodexDesktopCdpAdapter({
-          runDir: profile.runDir,
-          profileDir: profile.runtimePaths?.codexProfileDir,
-          rendererBridges: profile.rendererBridges,
-          providers: profile.providers
+      : createCodexDesktopMuxAdapter({
+          accountRegistry: profile.accountRegistry,
+          startAccountId: profile.startAccountId,
+          providers: profile.providers,
+          adapterOptions: {
+            runDir: profile.runDir,
+            rendererBridges: profile.rendererBridges,
+            providers: profile.providers
+          }
         })
   });
 

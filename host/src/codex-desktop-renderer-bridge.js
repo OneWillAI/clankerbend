@@ -1,6 +1,6 @@
 (function installCodexVimNavigator() {
   const VIM_NAV_APP_ID = "onewill.vim-nav";
-  const BRIDGE_VERSION = 114;
+  const BRIDGE_VERSION = 115;
   const RUNTIME_KEY = "__clankerbendRuntime";
   const STYLE_ID = "codex-vim-nav-style";
   const ANNOTATION_CLASS = "codex-vim-nav-annotation";
@@ -11,6 +11,7 @@
   const MODE_BADGE_ID = "codex-vim-nav-mode-badge";
   const HOST_UI_CLASS = "clankerbend-host-ui";
   const SELECTION_MENU_ID = "clankerbend-selection-menu";
+  const ACCOUNT_SWITCHER_ID = "clankerbend-account-switcher";
   const OVERLAY_ID = "clankerbend-anchored-overlay";
   const COMPOSER_CHIPS_ID = "clankerbend-composer-chips";
   const SELECTOR = [
@@ -67,6 +68,12 @@
     activeTextSelection: null,
     lastSelectionMenuAt: 0,
     renderedOverlaySignature: null,
+    accountUiStatus: "",
+    accountAddOpen: false,
+    accountAddLabel: "",
+    accountManageOpen: false,
+    accountPendingAdoptId: null,
+    accountPendingDeleteId: null,
     pendingComposerSubmission: null,
     submittedComposerSubmissions: []
   };
@@ -121,6 +128,7 @@
         color: #241f12 !important;
       }
       #${OVERLAY_ID} button,
+      #${ACCOUNT_SWITCHER_ID} button,
       #${COMPOSER_CHIPS_ID} button {
         appearance: none !important;
         border: 0 !important;
@@ -130,6 +138,202 @@
         cursor: pointer !important;
         font: 650 12px/1 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
         padding: 7px 8px !important;
+      }
+      #${ACCOUNT_SWITCHER_ID} {
+        display: grid !important;
+        gap: 7px !important;
+        min-width: 220px !important;
+        max-width: 320px !important;
+        border-top: 1px solid rgba(148, 163, 184, .24) !important;
+        border-bottom: 1px solid rgba(148, 163, 184, .18) !important;
+        margin: 5px 0 !important;
+        padding: 8px 4px !important;
+        color: inherit !important;
+      }
+      #${ACCOUNT_SWITCHER_ID} .clankerbend-account-head {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 8px !important;
+        padding: 0 6px !important;
+      }
+      #${ACCOUNT_SWITCHER_ID} .clankerbend-account-title {
+        color: currentColor !important;
+        font: 700 11px/1.2 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+        letter-spacing: 0 !important;
+      }
+      #${ACCOUNT_SWITCHER_ID} .clankerbend-account-status {
+        color: color-mix(in srgb, currentColor 62%, transparent) !important;
+        font: 500 11px/1.2 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+      }
+      #${ACCOUNT_SWITCHER_ID} .clankerbend-account-list {
+        display: grid !important;
+        gap: 2px !important;
+      }
+      #${ACCOUNT_SWITCHER_ID} .clankerbend-account-row {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) auto !important;
+        align-items: center !important;
+        gap: 5px !important;
+        border-radius: 6px !important;
+        padding: 2px !important;
+      }
+      #${ACCOUNT_SWITCHER_ID} .clankerbend-account-row.is-active {
+        background: rgba(143, 199, 212, .14) !important;
+      }
+      #${ACCOUNT_SWITCHER_ID} .clankerbend-account-main {
+        display: grid !important;
+        min-width: 0 !important;
+        border-radius: 5px !important;
+        padding: 6px !important;
+        text-align: left !important;
+        color: inherit !important;
+      }
+      #${ACCOUNT_SWITCHER_ID} .clankerbend-account-main:hover,
+      #${ACCOUNT_SWITCHER_ID} .clankerbend-account-icon:hover {
+        background: rgba(148, 163, 184, .16) !important;
+      }
+      #${ACCOUNT_SWITCHER_ID} .clankerbend-account-label,
+      #${ACCOUNT_SWITCHER_ID} .clankerbend-account-meta {
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+      }
+      #${ACCOUNT_SWITCHER_ID} .clankerbend-account-label {
+        font: 650 12px/1.2 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+      }
+      #${ACCOUNT_SWITCHER_ID} .clankerbend-account-meta {
+        color: color-mix(in srgb, currentColor 58%, transparent) !important;
+        font: 500 11px/1.2 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+      }
+      #${ACCOUNT_SWITCHER_ID} .clankerbend-account-icon {
+        width: 28px !important;
+        height: 28px !important;
+        display: inline-grid !important;
+        place-items: center !important;
+        border-radius: 5px !important;
+        color: color-mix(in srgb, currentColor 76%, transparent) !important;
+        padding: 0 !important;
+      }
+      #${ACCOUNT_SWITCHER_ID} .clankerbend-account-actions {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 4px !important;
+      }
+      #${ACCOUNT_SWITCHER_ID} .clankerbend-account-actions button {
+        border-radius: 5px !important;
+        background: rgba(148, 163, 184, .12) !important;
+        color: inherit !important;
+        min-width: 0 !important;
+      }
+      #${ACCOUNT_SWITCHER_ID} .clankerbend-account-add-form {
+        display: grid !important;
+        gap: 6px !important;
+        border-radius: 6px !important;
+        background: rgba(148, 163, 184, .10) !important;
+        padding: 6px !important;
+      }
+      #${ACCOUNT_SWITCHER_ID} .clankerbend-account-add-form input {
+        width: 100% !important;
+        min-width: 0 !important;
+        border: 1px solid rgba(148, 163, 184, .32) !important;
+        border-radius: 5px !important;
+        background: rgba(0, 0, 0, .18) !important;
+        color: inherit !important;
+        font: 500 12px/1.2 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+        outline: none !important;
+        padding: 7px 8px !important;
+      }
+      #${ACCOUNT_SWITCHER_ID} .clankerbend-account-add-form input:focus {
+        border-color: rgba(143, 199, 212, .76) !important;
+        box-shadow: 0 0 0 2px rgba(143, 199, 212, .18) !important;
+      }
+      #${ACCOUNT_SWITCHER_ID} .clankerbend-account-add-actions {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 4px !important;
+      }
+      #${ACCOUNT_SWITCHER_ID} .clankerbend-account-add-actions button {
+        background: rgba(148, 163, 184, .14) !important;
+      }
+      #${ACCOUNT_SWITCHER_ID} .clankerbend-account-manage {
+        display: grid !important;
+        gap: 7px !important;
+        border-top: 1px solid rgba(148, 163, 184, .18) !important;
+        padding-top: 7px !important;
+      }
+      #${ACCOUNT_SWITCHER_ID} .clankerbend-account-manage-head {
+        display: flex !important;
+        align-items: baseline !important;
+        justify-content: space-between !important;
+        gap: 8px !important;
+        padding: 0 6px !important;
+      }
+      #${ACCOUNT_SWITCHER_ID} .clankerbend-account-manage-head strong {
+        font: 700 11px/1.2 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+      }
+      #${ACCOUNT_SWITCHER_ID} .clankerbend-account-manage-head span {
+        color: color-mix(in srgb, currentColor 58%, transparent) !important;
+        font: 500 11px/1.2 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+      }
+      #${ACCOUNT_SWITCHER_ID} .clankerbend-account-manage-list {
+        display: grid !important;
+        gap: 6px !important;
+        max-height: 204px !important;
+        overflow-y: auto !important;
+        overscroll-behavior: contain !important;
+        padding-right: 2px !important;
+      }
+      #${ACCOUNT_SWITCHER_ID} .clankerbend-account-manage-list::-webkit-scrollbar {
+        width: 8px !important;
+      }
+      #${ACCOUNT_SWITCHER_ID} .clankerbend-account-manage-list::-webkit-scrollbar-thumb {
+        border-radius: 999px !important;
+        background: rgba(148, 163, 184, .34) !important;
+      }
+      #${ACCOUNT_SWITCHER_ID} .clankerbend-account-manage-row {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) auto !important;
+        align-items: center !important;
+        gap: 7px !important;
+        border-radius: 6px !important;
+        background: rgba(148, 163, 184, .10) !important;
+        padding: 6px !important;
+      }
+      #${ACCOUNT_SWITCHER_ID} .clankerbend-account-manage-title {
+        display: grid !important;
+        min-width: 0 !important;
+      }
+      #${ACCOUNT_SWITCHER_ID} .clankerbend-account-manage-title strong,
+      #${ACCOUNT_SWITCHER_ID} .clankerbend-account-manage-title span {
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+      }
+      #${ACCOUNT_SWITCHER_ID} .clankerbend-account-manage-title strong {
+        font: 650 12px/1.2 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+      }
+      #${ACCOUNT_SWITCHER_ID} .clankerbend-account-manage-title span {
+        color: color-mix(in srgb, currentColor 58%, transparent) !important;
+        font: 500 11px/1.2 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+      }
+      #${ACCOUNT_SWITCHER_ID} .clankerbend-account-manage-actions {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-end !important;
+        gap: 4px !important;
+      }
+      #${ACCOUNT_SWITCHER_ID} .clankerbend-account-manage-actions button {
+        background: rgba(148, 163, 184, .14) !important;
+        white-space: nowrap !important;
+        padding: 6px 7px !important;
+      }
+      #${ACCOUNT_SWITCHER_ID} button:disabled {
+        cursor: default !important;
+        opacity: .55 !important;
       }
       #${OVERLAY_ID} {
         position: fixed !important;
@@ -2131,12 +2335,438 @@
 
   function applyHostState(hostState) {
     state.hostState = hostState || null;
+    settleAccountUiStatus();
+    renderCodexAccountSwitcher();
     renderSelectionMenu();
     renderOverlay();
     renderComposerContextChips();
     maskSubmittedComposerContexts();
     installComposerSubmitInterceptor();
     return { ok: true };
+  }
+
+  function settleAccountUiStatus() {
+    if (state.accountUiStatus !== "Saving default...") return;
+    if (state.hostState?.codexAccounts?.switching) return;
+    state.accountUiStatus = "Default saved";
+    setTimeout(() => {
+      if (state.accountUiStatus !== "Default saved") return;
+      state.accountUiStatus = "";
+      renderCodexAccountSwitcher();
+    }, 1400);
+  }
+
+  function codexAccountsState() {
+    return state.hostState?.codexAccounts || null;
+  }
+
+  function visibleElement(el) {
+    if (!(el instanceof HTMLElement)) return false;
+    if (!el.isConnected) return false;
+    if (isHostUiElement(el)) return false;
+    const rect = el.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) return false;
+    const style = getComputedStyle(el);
+    return style.visibility !== "hidden" && style.display !== "none";
+  }
+
+  function normalizedText(el) {
+    return String(el?.innerText || el?.textContent || "").replace(/\s+/g, " ").trim();
+  }
+
+  function findLogoutMenuItem() {
+    const candidates = Array.from(document.querySelectorAll("button,a,[role='menuitem'],[role='button']"))
+      .filter(visibleElement)
+      .map((el) => {
+        const text = normalizedText(el);
+        const label = [text, el.getAttribute("aria-label"), el.getAttribute("title")].filter(Boolean).join(" ");
+        return { el, label };
+      })
+      .filter((candidate) => /\b(log\s*out|logout|sign\s*out)\b/i.test(candidate.label));
+    return candidates
+      .map((candidate) => candidate.el.closest?.("button,a,[role='menuitem']") || candidate.el)
+      .find((el) => el instanceof HTMLElement && visibleElement(el)) || null;
+  }
+
+  function accountMenuInsertionParent(logoutItem) {
+    if (!(logoutItem instanceof HTMLElement)) return null;
+    for (let node = logoutItem.parentElement; node && node !== document.body && node !== document.documentElement; node = node.parentElement) {
+      if (isHostUiElement(node)) return null;
+      const rect = node.getBoundingClientRect();
+      if (rect.width < 150 || rect.width > 520 || rect.height < 40 || rect.height > window.innerHeight * 0.9) continue;
+      if (node.contains(logoutItem)) return node;
+    }
+    return logoutItem.parentElement;
+  }
+
+  function accountMenuInsertionReference(parent, logoutItem) {
+    if (!(parent instanceof HTMLElement) || !(logoutItem instanceof HTMLElement)) return null;
+    let reference = logoutItem;
+    while (reference?.parentElement && reference.parentElement !== parent) {
+      reference = reference.parentElement;
+    }
+    return reference?.parentElement === parent ? reference : null;
+  }
+
+  function accountUiSignature(accountsState) {
+    const accounts = accountsState?.accounts || [];
+    return JSON.stringify({
+      active: accountsState?.activeAccountId || null,
+      def: accountsState?.clankerbendDefaultAccountId || null,
+      switching: Boolean(accountsState?.switching),
+      status: state.accountUiStatus,
+      addOpen: state.accountAddOpen,
+      manageOpen: state.accountManageOpen,
+      pendingAdopt: state.accountPendingAdoptId,
+      pendingDelete: state.accountPendingDeleteId,
+      accounts: accounts.map((account) => [
+        account.id,
+        account.kind,
+        account.label,
+        account.codexHome,
+        account.auth?.authJson ? 1 : 0,
+        account.backup ? 1 : 0
+      ])
+    });
+  }
+
+  function renderCodexAccountSwitcher() {
+    const accountsState = codexAccountsState();
+    const logoutItem = findLogoutMenuItem();
+    if (!accountsState?.available || !logoutItem) {
+      document.getElementById(ACCOUNT_SWITCHER_ID)?.remove();
+      return;
+    }
+
+    const parent = accountMenuInsertionParent(logoutItem);
+    if (!(parent instanceof HTMLElement)) return;
+    const reference = accountMenuInsertionReference(parent, logoutItem);
+    if (!(reference instanceof HTMLElement)) return;
+    let ui = document.getElementById(ACCOUNT_SWITCHER_ID);
+    if (ui && ui.parentElement !== parent) {
+      ui.remove();
+      ui = null;
+    }
+    if (!ui) {
+      ui = document.createElement("div");
+      ui.id = ACCOUNT_SWITCHER_ID;
+      ui.className = HOST_UI_CLASS;
+      stopNativeMenuPropagation(ui);
+      parent.insertBefore(ui, reference);
+    } else if (ui.nextElementSibling !== reference) {
+      parent.insertBefore(ui, reference);
+    }
+
+    const signature = accountUiSignature(accountsState);
+    if (ui.dataset.signature === signature) return;
+    ui.dataset.signature = signature;
+    ui.replaceChildren();
+
+    const head = document.createElement("div");
+    head.className = "clankerbend-account-head";
+    const title = document.createElement("div");
+    title.className = "clankerbend-account-title";
+    title.textContent = "ClankerID";
+    const status = document.createElement("div");
+    status.className = "clankerbend-account-status";
+    status.textContent = state.accountUiStatus || (accountsState.switching ? "Switching..." : `${accountsState.accounts?.length || 0}/${accountsState.maxAccounts || 20}`);
+    head.append(title, status);
+    ui.appendChild(head);
+
+    if (state.accountManageOpen) {
+      ui.appendChild(renderCodexAccountManage(accountsState));
+    } else {
+      const list = document.createElement("div");
+      list.className = "clankerbend-account-list";
+      for (const account of accountsState.accounts || []) {
+        list.appendChild(renderCodexAccountRow(account, accountsState));
+      }
+      ui.appendChild(list);
+    }
+
+    const actions = document.createElement("div");
+    actions.className = "clankerbend-account-actions";
+    const add = document.createElement("button");
+    add.type = "button";
+    add.textContent = "Add account";
+    add.disabled = Boolean(accountsState.switching) || (accountsState.accounts?.length || 0) >= (accountsState.maxAccounts || 20);
+    bindInjectedActivation(add, () => {
+      state.accountAddOpen = true;
+      state.accountUiStatus = "";
+      renderCodexAccountSwitcher();
+      setTimeout(() => {
+        document.querySelector(`#${ACCOUNT_SWITCHER_ID} input[data-clankerbend-account-label]`)?.focus?.({ preventScroll: true });
+      }, 0);
+    });
+    const manage = document.createElement("button");
+    manage.type = "button";
+    manage.textContent = state.accountManageOpen ? "Done" : "Manage";
+    bindInjectedActivation(manage, () => {
+      state.accountManageOpen = !state.accountManageOpen;
+      state.accountPendingAdoptId = null;
+      state.accountPendingDeleteId = null;
+      state.accountUiStatus = "";
+      renderCodexAccountSwitcher();
+    });
+    actions.append(add, manage);
+    ui.appendChild(actions);
+    if (state.accountAddOpen) ui.appendChild(renderCodexAccountAddForm(accountsState));
+  }
+
+  function renderCodexAccountAddForm(accountsState) {
+    const form = document.createElement("div");
+    form.className = "clankerbend-account-add-form";
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.dataset.clankerbendAccountLabel = "true";
+    input.placeholder = "Account label";
+    input.value = state.accountAddLabel || "";
+    input.autocomplete = "off";
+    input.spellcheck = false;
+    const stopInputEvent = (event) => {
+      event.stopPropagation();
+      event.stopImmediatePropagation?.();
+    };
+    input.addEventListener("pointerdown", stopInputEvent, true);
+    input.addEventListener("mousedown", stopInputEvent, true);
+    input.addEventListener("click", stopInputEvent, true);
+    input.addEventListener("input", () => {
+      state.accountAddLabel = input.value;
+    });
+    input.addEventListener("keydown", (event) => {
+      event.stopPropagation();
+      event.stopImmediatePropagation?.();
+      if (event.key === "Enter") {
+        event.preventDefault();
+        submitCodexAccountAdd(input.value);
+      } else if (event.key === "Escape") {
+        event.preventDefault();
+        cancelCodexAccountAdd();
+      }
+    }, true);
+
+    const buttons = document.createElement("div");
+    buttons.className = "clankerbend-account-add-actions";
+    const cancel = document.createElement("button");
+    cancel.type = "button";
+    cancel.textContent = "Cancel";
+    bindInjectedActivation(cancel, cancelCodexAccountAdd);
+    const create = document.createElement("button");
+    create.type = "button";
+    create.textContent = "Create";
+    create.disabled = Boolean(accountsState.switching);
+    bindInjectedActivation(create, () => submitCodexAccountAdd(input.value));
+    buttons.append(cancel, create);
+    form.append(input, buttons);
+    return form;
+  }
+
+  function cancelCodexAccountAdd() {
+    state.accountAddOpen = false;
+    state.accountAddLabel = "";
+    state.accountUiStatus = "";
+    renderCodexAccountSwitcher();
+  }
+
+  function submitCodexAccountAdd(rawLabel) {
+    const label = String(rawLabel || "").trim();
+    if (!label) {
+      state.accountUiStatus = "Label required";
+      renderCodexAccountSwitcher();
+      setTimeout(() => {
+        if (state.accountUiStatus !== "Label required") return;
+        state.accountUiStatus = "";
+        renderCodexAccountSwitcher();
+      }, 1400);
+      return;
+    }
+    state.accountAddOpen = false;
+    state.accountAddLabel = "";
+    state.accountUiStatus = "Creating...";
+    renderCodexAccountSwitcher();
+    enqueueHostEvent({ kind: "codexAccountCreateAndSwitch", label });
+  }
+
+  function renderCodexAccountManage(accountsState) {
+    const wrap = document.createElement("div");
+    wrap.className = "clankerbend-account-manage";
+    const head = document.createElement("div");
+    head.className = "clankerbend-account-manage-head";
+    const title = document.createElement("strong");
+    title.textContent = "Manage profiles";
+    const count = document.createElement("span");
+    const managed = (accountsState.accounts || []).filter((account) => account.kind === "managed");
+    count.textContent = `${managed.length} managed`;
+    head.append(title, count);
+    wrap.appendChild(head);
+    const list = document.createElement("div");
+    list.className = "clankerbend-account-manage-list";
+    if (!managed.length) {
+      const row = document.createElement("div");
+      row.className = "clankerbend-account-manage-row";
+      const title = document.createElement("div");
+      title.className = "clankerbend-account-manage-title";
+      const strong = document.createElement("strong");
+      strong.textContent = "No managed accounts";
+      const hint = document.createElement("span");
+      hint.textContent = "Create one with Add account.";
+      title.append(strong, hint);
+      row.appendChild(title);
+      list.appendChild(row);
+      wrap.appendChild(list);
+      return wrap;
+    }
+    for (const account of managed) list.appendChild(renderCodexAccountManageRow(account, accountsState));
+    wrap.appendChild(list);
+    return wrap;
+  }
+
+  function renderCodexAccountManageRow(account, accountsState) {
+    const row = document.createElement("div");
+    row.className = "clankerbend-account-manage-row";
+    row.title = accountCodexHomeTitle(account);
+    const title = document.createElement("div");
+    title.className = "clankerbend-account-manage-title";
+    const strong = document.createElement("strong");
+    strong.textContent = account.label || account.id;
+    const hint = document.createElement("span");
+    const pendingAdopt = state.accountPendingAdoptId === account.id;
+    const pendingDelete = state.accountPendingDeleteId === account.id;
+    hint.textContent = pendingAdopt
+      ? "Replace ~/.codex with this profile; current primary is backed up."
+      : pendingDelete
+        ? "Hide this profile and move its files to archive storage."
+        : [account.auth?.authJson ? "signed in" : "not signed in", account.backup ? "backup" : ""].filter(Boolean).join(" · ");
+    title.append(strong, hint);
+
+    const actions = document.createElement("div");
+    actions.className = "clankerbend-account-manage-actions";
+    const adopt = document.createElement("button");
+    adopt.type = "button";
+    adopt.textContent = pendingAdopt ? "Replace ~/.codex" : "Make primary";
+    adopt.title = "Make this the primary Codex home";
+    adopt.disabled = Boolean(accountsState.switching);
+    bindInjectedActivation(adopt, () => {
+      if (!pendingAdopt) {
+        state.accountPendingAdoptId = account.id;
+        state.accountPendingDeleteId = null;
+        state.accountUiStatus = "";
+        renderCodexAccountSwitcher();
+        return;
+      }
+      state.accountUiStatus = "Making primary...";
+      state.accountPendingAdoptId = null;
+      renderCodexAccountSwitcher();
+      enqueueHostEvent({ kind: "codexAccountAdoptAsPrimary", accountId: account.id });
+    });
+
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.textContent = pendingDelete ? "Archive profile" : "Archive";
+    remove.title = "Archive this managed profile";
+    remove.disabled = Boolean(accountsState.switching) || account.id === accountsState.activeAccountId;
+    bindInjectedActivation(remove, () => {
+      if (!pendingDelete) {
+        state.accountPendingDeleteId = account.id;
+        state.accountPendingAdoptId = null;
+        state.accountUiStatus = "";
+        renderCodexAccountSwitcher();
+        return;
+      }
+      state.accountUiStatus = "Archiving...";
+      state.accountPendingDeleteId = null;
+      renderCodexAccountSwitcher();
+      enqueueHostEvent({ kind: "codexAccountDelete", accountId: account.id });
+    });
+
+    actions.append(adopt, remove);
+    row.append(title, actions);
+    return row;
+  }
+
+  function stopNativeMenuPropagation(el) {
+    const stop = (event) => {
+      event.stopPropagation();
+      event.stopImmediatePropagation?.();
+    };
+    el.addEventListener("pointerdown", stop);
+    el.addEventListener("mousedown", stop);
+    el.addEventListener("touchstart", stop, { passive: false });
+    el.addEventListener("click", stop);
+  }
+
+  function bindInjectedActivation(button, handler) {
+    let lastRunAt = 0;
+    const run = (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation?.();
+      if (button.disabled) return;
+      const now = Date.now();
+      if (now - lastRunAt < 450) return;
+      lastRunAt = now;
+      handler(event);
+    };
+    button.addEventListener("pointerdown", run, true);
+    button.addEventListener("mousedown", run, true);
+    button.addEventListener("touchstart", run, { capture: true, passive: false });
+    button.addEventListener("click", run, true);
+  }
+
+  function renderCodexAccountRow(account, accountsState) {
+    const row = document.createElement("div");
+    row.className = `clankerbend-account-row${account.id === accountsState.activeAccountId ? " is-active" : ""}`;
+
+    const main = document.createElement("button");
+    main.type = "button";
+    main.className = "clankerbend-account-main";
+    main.disabled = Boolean(accountsState.switching) || account.id === accountsState.activeAccountId;
+    main.title = [
+      account.id === accountsState.activeAccountId ? "Current Codex account profile" : `Switch to ${account.label || account.id}`,
+      accountCodexHomeTitle(account)
+    ].filter(Boolean).join("\n");
+    bindInjectedActivation(main, () => {
+      if (account.id === accountsState.activeAccountId) return;
+      state.accountUiStatus = "Switching...";
+      renderCodexAccountSwitcher();
+      enqueueHostEvent({ kind: "codexAccountSwitch", accountId: account.id });
+    });
+
+    const label = document.createElement("span");
+    label.className = "clankerbend-account-label";
+    label.textContent = account.label || account.id;
+    const meta = document.createElement("span");
+    meta.className = "clankerbend-account-meta";
+    meta.textContent = [
+      account.kind,
+      account.id === accountsState.clankerbendDefaultAccountId ? "default" : "",
+      account.auth?.authJson ? "signed in" : "not signed in"
+    ].filter(Boolean).join(" · ");
+    main.append(label, meta);
+
+    const def = document.createElement("button");
+    def.type = "button";
+    def.className = "clankerbend-account-icon";
+    def.textContent = account.id === accountsState.clankerbendDefaultAccountId ? "✓" : "☆";
+    def.setAttribute("aria-label", account.id === accountsState.clankerbendDefaultAccountId ? "Launches by default" : "Launch by default");
+    def.title = [
+      account.id === accountsState.clankerbendDefaultAccountId ? "Launches by default" : "Launch by default",
+      accountCodexHomeTitle(account)
+    ].filter(Boolean).join("\n");
+    def.disabled = Boolean(accountsState.switching) || account.id === accountsState.clankerbendDefaultAccountId;
+    bindInjectedActivation(def, () => {
+      state.accountUiStatus = "Saving default...";
+      renderCodexAccountSwitcher();
+      enqueueHostEvent({ kind: "codexAccountSetDefault", accountId: account.id });
+    });
+
+    row.append(main, def);
+    return row;
+  }
+
+  function accountCodexHomeTitle(account) {
+    return account?.codexHome ? `CODEX_HOME: ${account.codexHome}` : "";
   }
 
   function hostSelectionActions() {
@@ -3415,6 +4045,7 @@
   const mutationObserver = new MutationObserver(() => {
     state.version += 1;
     scheduleAnnotationRefresh();
+    renderCodexAccountSwitcher();
     maskSubmittedComposerContexts();
   });
   window.addEventListener("resize", resizeHandler);
@@ -3428,6 +4059,7 @@
     document.removeEventListener("mouseup", handlePossibleTextSelection, true);
     document.removeEventListener("click", window.__clankerbendComposerSubmitClickHandler, true);
     document.removeEventListener("keydown", window.__clankerbendComposerSubmitKeyHandler, true);
+    document.getElementById(ACCOUNT_SWITCHER_ID)?.remove();
     window.removeEventListener("resize", resizeHandler);
     window.removeEventListener("blur", blurHandler);
     mutationObserver.disconnect();

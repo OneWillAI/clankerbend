@@ -239,17 +239,20 @@ An app must not bypass the host token by calling CDP or app-server directly.
 ClankerBend `0.1` defines two token bootstrap paths:
 
 1. **Hosted panel apps**: the host serves the app entry URL and may append the
-   token in the URL fragment as `#clankerbend_token=<token>`. App JavaScript reads
-   the fragment, stores the token in memory, immediately removes the fragment
-   with `history.replaceState`, and sends the token in the `Authorization`
-   header for JSON and SSE requests.
+   token in the URL fragment as `#clankerbend_token=<token>`. For served HTML,
+   the host may also inject a token bootstrap such as
+   `window.__CLANKERBEND_TOKEN` or `<meta name="clankerbend-token">` so URL
+   rewriting does not strand the app without a token. App JavaScript stores the
+   token in memory, may keep it in `sessionStorage` for hash-less reloads,
+   immediately removes any fragment with `history.replaceState`, and sends the
+   token in the `Authorization` header for JSON and SSE requests.
 2. **External clients**: the token is provided out of band by the launcher, such
-   as an environment variable, config file, local IPC channel, or command output.
+   as the `Token:` startup line, an environment variable, config file, local IPC
+   channel, or command output.
 
 Hosts must not require a token in the query string. Query strings are more
-likely to be logged or copied than URL fragments. Hosts may additionally set a
-same-origin secure session cookie for panels they serve, but clients must still
-support the bearer-token header.
+likely to be logged or copied than URL fragments. Clients must support the
+bearer-token header.
 
 ## State Model
 
@@ -757,6 +760,10 @@ ClankerBend can launch Codex Desktop with CDP:
   --remote-debugging-port=<free> \
   --user-data-dir=<test-or-clankerbend-profile>
 ```
+
+When account profiles are enabled, the adapter also launches Desktop with the
+selected profile's `CODEX_HOME` and isolated Electron user-data directory.
+ClankerBend `0.1` runs one managed Codex Desktop instance at a time.
 
 The host must not patch `/Applications/Codex.app`.
 

@@ -47,9 +47,42 @@ async function bootstrap() {
 
 function readToken() {
   const params = new URLSearchParams(location.hash.startsWith("#") ? location.hash.slice(1) : location.hash);
-  const value = params.get("clankerbend_token") || "";
-  if (value) history.replaceState(null, "", location.pathname + location.search);
+  const fragmentToken = params.get("clankerbend_token") || "";
+  const bootstrapToken = window.__CLANKERBEND_TOKEN || "";
+  const metaToken = document.querySelector("meta[name='clankerbend-token']")?.content || "";
+  const inlineToken = readInlineBootstrapToken();
+  const cachedToken = readCachedToken();
+  const value = fragmentToken || bootstrapToken || metaToken || inlineToken || cachedToken;
+  if (fragmentToken) history.replaceState(null, "", location.pathname + location.search);
+  if (value) writeCachedToken(value);
   return value;
+}
+
+function readInlineBootstrapToken() {
+  for (const script of document.scripts) {
+    const match = script.textContent?.match(/window\.__CLANKERBEND_TOKEN=("[^"]*");?/);
+    if (!match) continue;
+    try {
+      return JSON.parse(match[1]);
+    } catch {
+      return "";
+    }
+  }
+  return "";
+}
+
+function readCachedToken() {
+  try {
+    return sessionStorage.getItem("clankerbend_token") || "";
+  } catch {
+    return "";
+  }
+}
+
+function writeCachedToken(value) {
+  try {
+    sessionStorage.setItem("clankerbend_token", value);
+  } catch {}
 }
 
 function headers(extra = {}) {

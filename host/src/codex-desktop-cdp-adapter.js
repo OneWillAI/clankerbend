@@ -67,6 +67,8 @@ class CodexDesktopCdpAdapter {
     this.codexCli = options.codexCli || DEFAULT_CODEX_CLI;
     this.runDir = options.runDir ? resolve(options.runDir) : null;
     this.profileDir = options.profileDir || (this.runDir ? join(this.runDir, "codex-profile") : null);
+    this.codexHome = options.codexHome ? resolve(options.codexHome) : null;
+    this.resetProfileDir = options.resetProfileDir === true;
     this.rendererBridges = normalizeRendererBridges(options);
     this.providers = normalizeProviders(options, this.rendererBridges);
     this.snapshotToTranscript = options.snapshotToTranscript || defaultSnapshotToTranscript;
@@ -93,9 +95,10 @@ class CodexDesktopCdpAdapter {
     }
     if (this.runDir) mkdirSync(this.runDir, { recursive: true });
     if (this.profileDir) {
-      rmSync(this.profileDir, { recursive: true, force: true });
+      if (this.resetProfileDir) rmSync(this.profileDir, { recursive: true, force: true });
       mkdirSync(this.profileDir, { recursive: true });
     }
+    if (this.codexHome) mkdirSync(this.codexHome, { recursive: true });
 
     this.cdpPort = await freePort();
     this.child = spawn(this.codexApp, [
@@ -105,6 +108,7 @@ class CodexDesktopCdpAdapter {
     ], {
       env: {
         ...process.env,
+        ...(this.codexHome ? { CODEX_HOME: this.codexHome } : {}),
         ...(this.profileDir ? { CODEX_ELECTRON_USER_DATA_PATH: this.profileDir } : {})
       },
       stdio: ["ignore", "pipe", "pipe"]
@@ -885,6 +889,24 @@ class CodexDesktopCdpAdapter {
         await this.host.highlightRange(event.range, { durationMs: 1200 });
       } else if (event.kind === "highlightAnchor" && event.anchorId) {
         await this.host.highlightAnchor(event.anchorId, { durationMs: 1200 });
+      } else if (event.kind === "codexAccountSwitch" && event.accountId) {
+        if (typeof this.host.transcriptAdapter.switchTo !== "function") throw new Error("Codex account switching is unavailable");
+        await this.host.transcriptAdapter.switchTo(String(event.accountId));
+      } else if (event.kind === "codexAccountCreateAndSwitch") {
+        if (typeof this.host.transcriptAdapter.createAccount !== "function" || typeof this.host.transcriptAdapter.switchTo !== "function") {
+          throw new Error("Codex account creation is unavailable");
+        }
+        const account = await this.host.transcriptAdapter.createAccount({ label: String(event.label || "Account") });
+        await this.host.transcriptAdapter.switchTo(account.id);
+      } else if (event.kind === "codexAccountSetDefault" && event.accountId) {
+        if (typeof this.host.transcriptAdapter.setDefault !== "function") throw new Error("Codex account defaults are unavailable");
+        await this.host.transcriptAdapter.setDefault(String(event.accountId));
+      } else if (event.kind === "codexAccountAdoptAsPrimary" && event.accountId) {
+        if (typeof this.host.transcriptAdapter.adoptAsPrimary !== "function") throw new Error("Codex primary adoption is unavailable");
+        await this.host.transcriptAdapter.adoptAsPrimary(String(event.accountId));
+      } else if (event.kind === "codexAccountDelete" && event.accountId) {
+        if (typeof this.host.transcriptAdapter.deleteAccount !== "function") throw new Error("Codex account removal is unavailable");
+        await this.host.transcriptAdapter.deleteAccount(String(event.accountId));
       }
     }
   }

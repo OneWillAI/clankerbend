@@ -8,6 +8,7 @@ await main();
 
 async function main() {
   await run("node", ["host/test-renderer-sticky-overlay.mjs"]);
+  await run("node", ["launch/test-accounts.mjs"]);
   await run("npm", ["--prefix", "apps/vim-nav", "test"]);
   await run("npm", ["--prefix", "apps/sticky-notes", "test"]);
   console.log("clankerbend fast e2e suite passed");
