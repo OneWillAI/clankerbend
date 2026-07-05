@@ -8,6 +8,7 @@ ClankerBend lets you build Codex Desktop plugins without rebuilding or re-signin
 Codex Desktop itself. It uses [CDP](https://x.com/OpenAIDevs/status/2065226355495895521)
 to provide a more stable API for tasks such as transcript navigation, chat annotation,
 attaching a file to the prompt window, opening the side panel, and so on.
+[YouTube demo](https://www.youtube.com/watch?v=FcQUxiL6enc) (or click on the screenshot):
 
 <p align="center">
   <a href="https://www.youtube.com/watch?v=FcQUxiL6enc">
