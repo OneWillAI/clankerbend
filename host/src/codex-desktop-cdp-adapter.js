@@ -1,13 +1,26 @@
 import { spawn } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import net from "node:net";
-import { basename, join, resolve } from "node:path";
+import { basename, dirname, join, resolve } from "node:path";
 
-const DEFAULT_CODEX_APP = "/Applications/Codex.app/Contents/MacOS/Codex";
-const DEFAULT_CODEX_CLI = "/Applications/Codex.app/Contents/Resources/codex";
+const CODEX_DESKTOP_EXECUTABLES = [
+  "/Applications/Codex.app/Contents/MacOS/Codex",
+  "/Applications/ChatGPT.app/Contents/MacOS/ChatGPT"
+];
 
 export function createCodexDesktopCdpAdapter(options = {}) {
   return new CodexDesktopCdpAdapter(options);
+}
+
+export function resolveCodexDesktopPaths(options = {}) {
+  const codexApp = options.codexApp || CODEX_DESKTOP_EXECUTABLES.find((candidate) => existsSync(candidate)) || CODEX_DESKTOP_EXECUTABLES[0];
+  const bundledCli = join(dirname(dirname(codexApp)), "Resources/codex");
+  const codexCli = options.codexCli || (existsSync(bundledCli)
+    ? bundledCli
+    : CODEX_DESKTOP_EXECUTABLES
+        .map((candidate) => join(dirname(dirname(candidate)), "Resources/codex"))
+        .find((candidate) => existsSync(candidate))) || bundledCli;
+  return { codexApp, codexCli };
 }
 
 function normalizeRendererBridges(options = {}) {
@@ -63,8 +76,9 @@ class CodexDesktopCdpAdapter {
     this.cdp = true;
     this.rendererInjection = true;
     this.rendererFetchToLoopback = false;
-    this.codexApp = options.codexApp || DEFAULT_CODEX_APP;
-    this.codexCli = options.codexCli || DEFAULT_CODEX_CLI;
+    const desktopPaths = resolveCodexDesktopPaths(options);
+    this.codexApp = desktopPaths.codexApp;
+    this.codexCli = desktopPaths.codexCli;
     this.runDir = options.runDir ? resolve(options.runDir) : null;
     this.profileDir = options.profileDir || (this.runDir ? join(this.runDir, "codex-profile") : null);
     this.codexHome = options.codexHome ? resolve(options.codexHome) : null;
@@ -88,6 +102,12 @@ class CodexDesktopCdpAdapter {
 
   async start(host) {
     this.host = host;
+    if (!existsSync(this.codexApp)) {
+      throw new Error(`Codex Desktop executable not found. Looked for: ${CODEX_DESKTOP_EXECUTABLES.join(", ")}`);
+    }
+    if (!existsSync(this.codexCli)) {
+      throw new Error(`Codex CLI not found in the Codex Desktop bundle: ${this.codexCli}`);
+    }
     if (!this.rendererBridges.length) throw new Error("at least one renderer bridge is required");
     for (const bridge of this.rendererBridges) {
       if (!bridge.injectedScriptPath) throw new Error(`injectedScriptPath is required for ${bridge.appId || "renderer bridge"}`);

@@ -274,6 +274,9 @@ assert.equal(transcriptAnchor.querySelector(".codex-vim-nav-annotation")?.textCo
 
 const helpButton = dom.document.querySelector("#codex-vim-nav-mode-badge .codex-vim-nav-help-toggle");
 assert.ok(helpButton);
+const vimNavStyle = dom.document.getElementById("codex-vim-nav-style").textContent;
+assert.match(vimNavStyle, /#codex-vim-nav-mode-badge\s*\{[^}]*pointer-events:\s*none/s);
+assert.match(vimNavStyle, /codex-vim-nav-help-toggle\s*\{[^}]*pointer-events:\s*auto/s);
 helpButton.dispatchEvent(new dom.Event("mousedown"));
 assert.ok(dom.document.querySelector("#codex-vim-nav-mode-badge .codex-vim-nav-help-menu"));
 helpButton.click();

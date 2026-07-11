@@ -755,17 +755,21 @@ In either model:
 ClankerBend can launch Codex Desktop with CDP:
 
 ```sh
-/Applications/Codex.app/Contents/MacOS/Codex \
+/Applications/ChatGPT.app/Contents/MacOS/ChatGPT \
   --remote-debugging-address=127.0.0.1 \
   --remote-debugging-port=<free> \
   --user-data-dir=<test-or-clankerbend-profile>
 ```
 
+Current Desktop releases use the `ChatGPT.app` path while retaining the Codex
+bundle identity and bundled `Resources/codex` CLI. ClankerBend discovers that
+layout and the legacy `/Applications/Codex.app` layout automatically.
+
 When account profiles are enabled, the adapter also launches Desktop with the
 selected profile's `CODEX_HOME` and isolated Electron user-data directory.
 ClankerBend `0.1` runs one managed Codex Desktop instance at a time.
 
-The host must not patch `/Applications/Codex.app`.
+The host must not patch either application bundle.
 
 ### Attach
 

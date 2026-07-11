@@ -1,6 +1,6 @@
 (function installCodexVimNavigator() {
   const VIM_NAV_APP_ID = "onewill.vim-nav";
-  const BRIDGE_VERSION = 115;
+  const BRIDGE_VERSION = 116;
   const RUNTIME_KEY = "__clankerbendRuntime";
   const STYLE_ID = "codex-vim-nav-style";
   const ANNOTATION_CLASS = "codex-vim-nav-annotation";
@@ -465,6 +465,7 @@
         font: 600 12px/1.25 ui-monospace, SFMono-Regular, Menlo, monospace !important;
         letter-spacing: 0 !important;
         user-select: none !important;
+        pointer-events: none !important;
       }
       #${MODE_BADGE_ID}.is-visible {
         display: flex !important;
@@ -494,6 +495,7 @@
         padding: 0 3px !important;
         font: 700 12px/1 ui-monospace, SFMono-Regular, Menlo, monospace !important;
         cursor: pointer !important;
+        pointer-events: auto !important;
       }
       #${MODE_BADGE_ID} .codex-vim-nav-dismiss:hover {
         color: #e8f6fa !important;
@@ -510,6 +512,7 @@
         padding: 0 5px !important;
         font: 700 11px/1.3 ui-monospace, SFMono-Regular, Menlo, monospace !important;
         cursor: pointer !important;
+        pointer-events: auto !important;
       }
       #${MODE_BADGE_ID} .codex-vim-nav-help-toggle:hover {
         border-color: rgba(143, 199, 212, .75) !important;
